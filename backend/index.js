@@ -60,8 +60,13 @@ let persons = [
 
     })
 
-    app.get("/api/persons/:id", (request,response) => {
-         Person.findById(request.params.id).then(person => response.json(person));
+    app.get("/api/persons/:id", (request,response,next) => {
+         Person.findById(request.params.id).then(person => {
+            if(!person){
+                return response.status(404).end() //PErson mit id nicht gefunden
+            }
+            response.json(person)
+        }).catch(error => next(error))
     })
 
     app.delete("/api/persons/:id", (request,response,next) => {
@@ -101,7 +106,10 @@ let persons = [
         console.log(error.message)
 
         if(error.name ==='CastError'){
-            return response.status(400).send({error:'malfornatted id'})
+            console.log("FUCK");
+            return response.status(400).send({error:'malformatted id'})
+        }else if(error.name ===''){
+
         }
         next(error);
     }
