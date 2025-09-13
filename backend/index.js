@@ -78,7 +78,7 @@ let persons = [
 
     })
 
-    app.post("/api/persons", (request,response) => {
+    app.post("/api/persons", (request,response,next) => {
 
         const body = request.body;
 
@@ -97,7 +97,10 @@ let persons = [
             number:body.number
         })
 
-        person.save().then(savedperson => response.json(savedperson));
+        person
+        .save()
+        .then(savedperson => response.json(savedperson))
+        .catch(error => next(error));
         
 
     })
@@ -106,10 +109,9 @@ let persons = [
         console.log(error.message)
 
         if(error.name ==='CastError'){
-            console.log("FUCK");
             return response.status(400).send({error:'malformatted id'})
-        }else if(error.name ===''){
-
+        }else if(error.name ==='ValidationError'){
+            return response.status(400).json({error:error.message})
         }
         next(error);
     }
