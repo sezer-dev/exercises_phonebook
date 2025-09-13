@@ -48,20 +48,34 @@ let persons = [
     })
 
     app.get("/info", (request,response) => {
-        info = `<p>Phonebook has info for ${Person.length} people</p>
-                <p>${new Date()}</p>`
-        response.send(info)
+    Person.countDocuments({}) //Zählz die anzahl an doumenten
+    .then(count => { //Ruckgabe ist die Anzahl 
+      const info = `
+        <p>Phonebook has info for ${count} people</p>
+        <p>${new Date()}</p>
+      `;
+      response.send(info);
+    })
+    .catch(error => {
+      console.error(error);
+      response.status(500).json({ error: 'something went wrong' });
+    });
 
     })
 
     app.get("/api/persons/:id", (request,response) => {
-        NodeIterator.findById(request.params.id).then(person => response.json(person));
+         Person.findById(request.params.id).then(person => response.json(person));
     })
 
     app.delete("/api/persons/:id", (request,response) => {
         const id = request.params.id;
-        persons = persons.filter(p => p.id!=id);
-        response.status(204).end();
+        Person.deleteOne({_id:id})
+        .then(() => response.status(204).end())
+        .catch(error => {
+            console.error(error);
+            response.status(500).json({ error: 'something went wrong' });
+        });
+       
 
     })
 
@@ -79,18 +93,16 @@ let persons = [
             return response.status(400).json({error:'name must be unique'})
         }
 
-        const person = {
-            id:String(Math.floor(Math.random()*100000)),
+        const person = new Person( {
             name:body.name,
             number:body.number
-        }
-        persons = persons.concat(person)
+        })
 
-        response.json(person)
+        person.save().then(savedperson => response.json(savedperson));
         
 
     })
 
-    PORT = 3001
+    PORT = process.env.PORT
 
     app.listen(PORT, () => console.log(`Server running on ${PORT}`));
