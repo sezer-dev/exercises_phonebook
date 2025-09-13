@@ -1,5 +1,6 @@
-
+require('dotenv').config()
 const express = require("express");
+const Person = require('./models/people')
 
 const app = express()
 
@@ -43,24 +44,18 @@ let persons = [
     })
 
     app.get("/api/persons", (request,response) => {
-        response.json(persons)
+        Person.find({}).then(person => response.json(person));
     })
 
     app.get("/info", (request,response) => {
-        info = `<p>Phonebook has info for ${persons.length} people</p>
+        info = `<p>Phonebook has info for ${Person.length} people</p>
                 <p>${new Date()}</p>`
         response.send(info)
 
     })
 
     app.get("/api/persons/:id", (request,response) => {
-        const id = request.params.id
-        const person = persons.find(p => p.id===id)
-        if(person){
-            response.json(person)
-        }else{
-             response.status(404).end()
-        }
+        NodeIterator.findById(request.params.id).then(person => response.json(person));
     })
 
     app.delete("/api/persons/:id", (request,response) => {
