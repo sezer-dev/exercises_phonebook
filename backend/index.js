@@ -47,7 +47,7 @@ let persons = [
         Person.find({}).then(person => response.json(person));
     })
 
-    app.get("/info", (request,response) => {
+    app.get("/info", (request,response,next) => {
     Person.countDocuments({}) //Zählz die anzahl an doumenten
     .then(count => { //Ruckgabe ist die Anzahl 
       const info = `
@@ -56,10 +56,7 @@ let persons = [
       `;
       response.send(info);
     })
-    .catch(error => {
-      console.error(error);
-      response.status(500).json({ error: 'something went wrong' });
-    });
+    .catch(error => next(error));
 
     })
 
@@ -67,14 +64,11 @@ let persons = [
          Person.findById(request.params.id).then(person => response.json(person));
     })
 
-    app.delete("/api/persons/:id", (request,response) => {
+    app.delete("/api/persons/:id", (request,response,next) => {
         const id = request.params.id;
         Person.deleteOne({_id:id})
         .then(() => response.status(204).end())
-        .catch(error => {
-            console.error(error);
-            response.status(500).json({ error: 'something went wrong' });
-        });
+        .catch(error => next(error));
        
 
     })
@@ -102,6 +96,17 @@ let persons = [
         
 
     })
+
+    const errorHanlder = (error,request,response,next) => {
+        console.log(error.message)
+
+        if(error.name ==='CastError'){
+            return response.status(400).send({error:'malfornatted id'})
+        }
+        next(error);
+    }
+
+    app.use(errorHanlder);
 
     PORT = process.env.PORT
 
